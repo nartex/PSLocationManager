@@ -237,7 +237,11 @@ static const CGFloat kSpeedNotSet = -1.0;
 }
 
 - (void)stopLocationUpdates {
-    [self.locationPingTimer invalidate];
+    if (self.locationPingTimer) {
+        [self.locationPingTimer invalidate];
+    } else {
+        self.locationPingTimer = [NSTimer timerWithTimeInterval:kMinimumLocationUpdateInterval target:self selector:@selector(requestNewLocation) userInfo:nil repeats:NO];
+    }
     [self.locationManager stopUpdatingLocation];
     [self.locationManager stopUpdatingHeading];
     self.pauseDeltaStart = [NSDate timeIntervalSinceReferenceDate];
@@ -258,8 +262,11 @@ static const CGFloat kSpeedNotSet = -1.0;
     // since the oldLocation might be from some previous use of core location, we need to make sure we're getting data from this run
     if (oldLocation == nil) return;
     BOOL isStaleLocation = ([oldLocation.timestamp compare:self.startTimestamp] == NSOrderedAscending);
-    
-    [self.locationPingTimer invalidate];
+    if (self.locationPingTimer) {
+        [self.locationPingTimer invalidate];
+    } else {
+        self.locationPingTimer = [NSTimer timerWithTimeInterval:kMinimumLocationUpdateInterval target:self selector:@selector(requestNewLocation) userInfo:nil repeats:NO];
+    }
     
     if (newLocation.horizontalAccuracy <= kRequiredHorizontalAccuracy) {
         self.signalStrength = PSLocationManagerGPSSignalStrengthStrong;
